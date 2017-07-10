@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- <report 
+            id="action_report_print_overdue"
+            model="res.partner"
+            report_type="qweb-pdf"
+            string="Due Payments"
+            name="account.report_overdue"
+            file="account.report_overdue"
+            /> -->
+
+        <report 
+            id="action_report_print_fds"
+            model="res.partner"
+            report_type="qweb-pdf"
+            string="Feuille de soins"
+            name="AlloDoc.report_fds"
+            file="AlloDoc.report_fds"
+            />
+    </data>
+</openerp>
+

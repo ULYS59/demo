@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	 <data>
+
+
+	 	<!-- Tree View -->
+		<record id="custom_res_partner_tree_view" model="ir.ui.view">
+			<field name="name">custom.res.partner.tree.view</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="base.view_partner_tree" />
+			<field eval="1" name="priority"/>
+			<field name="arch" type="xml">
+				<xpath expr="//tree/field[@name='display_name']" position="replace">
+					<field string="Nom" name="name"/>
+					<field string="Prénom" name="x_patient_prenom"/>
+				</xpath>
+			</field>
+		</record>
+
+		<record id="antecedent_obst_form_view" model="ir.ui.view">
+			<field name="name">antecedent.obst.form.view</field>
+			<field name="model">antecedent.obst</field>
+			<field name="type">form</field>
+			<field eval="1" name="priority" />
+			<field name="arch" type="xml">
+				<form string = "Créer un antécédents de grossesse">
+					<sheet>
+						<group>
+							<field name="x_obst_date"/>
+							<field name="x_obst_lieu"/>
+							<field name="x_obst_gross"/>
+							<field name="x_obst_acc"/>
+							<field name="x_obst_sexe"/>
+							<field name="x_obst_poids"/>
+							<field name="x_obst_allait"/>
+							<field name="x_obst_etat"/>
+						</group>
+					</sheet>
+				</form>
+			</field>
+		</record>
+
+
+
+		<!-- Form View -->
+		<record id="custom_res_partner_form_view" model="ir.ui.view">
+			<field name="name">custom.res.partner.form.view</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="base.view_partner_form" />
+			<field name="type">form</field>
+			<field eval="1" name="priority" />
+			<field name="arch" type="xml">
+				<xpath expr="//field[@name='user_id']" position="attributes">
+					<attribute name="invisible">True</attribute>
+				</xpath>
+				<xpath expr="//sheet" position="attributes">
+					<attribute name="invisible">True</attribute>
+				</xpath>
+				<xpath expr="//form[@name='partner_form_view']/sheet[@name='sheet_partner_form']" position="attributes">
+					<attribute name="invisible">True</attribute>
+				</xpath>
+					<form>
+						<sheet>
+							<div class="oe_button_box" name="button_box">
+								<button class="oe_stat_button" type="object" name="schedule_meeting" icon="fa-calendar" context="{'partner_id': active_id, 'partner_name': name}">
+									<field string="Meetings" name="x_meeting_count" widget="statinfo"/>
+								</button>
+							</div>
+							<!-- <span class="oe_form_field oe_form_field_image oe_avatar" data-original-title="">
+								<t t-if="record.is_company.raw_value === true">
+									<img widget='image' src="/base/static/src/img/avatar_medecin_femme.png"/>
+								</t>
+								<t t-if="record.is_company.raw_value === false">
+									<img widget='image' src="/base/static/src/img/avatar_medecin_homme.png"/>
+								</t>
+							</span>	 -->					
+							<field name="x_src_avatar" widget='image' class="oe_avatar"/>
+							<!-- <img widget='image' src="localhost:8069/custom_res_partner/static/src/img/avatar_medecin_homme.png" options='{"preview_image": "image_medium"}' height="90" width:"90"/> -->
+							<div class="oe_title">
+								<h1>
+									<field name="name" placeholder="Nom" default_focus="1" attrs="{'required' : [('type', '=', 'contact')]}"/>
+								</h1>
+								<h2>
+									<field name="x_patient_prenom" placeholder="Prénom" attrs="{'required' : [('is_company', '=', False)], 'invisible' : [('is_company', '=', True)]}"/>
+								</h2>
+								<h3>
+									<field name="phone" placeholder="Tél." widget="phone"/>
+								</h3>
+							</div>
+
+							<div>
+								<field name="x_is_pro" invisible="1"/>
+								<field name="x_compte_type" widget="radio"
+									class="oe_edit_only"
+									on_change="_on_change_compte_type(x_compte_type)"
+									options="{'horizontal': true}"/>
+								<field name="is_company" invisible="1"/>
+
+								<field name="company_type" widget="radio"
+									class="oe_edit_only"
+									on_change="on_change_company_type(company_type)"
+									options="{'horizontal': true}" invisible="1"/>
+
+								<div class="o_row">
+									<field name="parent_id"
+										invisible="1"
+										on_change="onchange_parent_id(parent_id)"/>
+								</div>
+							</div>
+							<separator string="Informations"/>
+							<group name="info">
+									<group>
+										<field name="dob" on_change="_onchange_getage_id(dob)"/>
+										<field name="age"/>
+										<field name="x_patient_sexe" widget="radio"
+											class="oe_edit_only"
+											options="{'horizontal': true}"/>
+									</group>
+									<group>
+										<field name="type" attrs="{'invisible': [('parent_id','=', False)]}" groups="base.group_no_one"/>
+										<label for="street" string="Address"/>
+										<div class="o_address_format">
+											<div class="oe_edit_only">
+												<button name="open_parent" type="object" string="(edit)" class="oe_link" attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'contact')]}"/>
+											</div>
+											
+											<field name="street" placeholder="Street..." class="o_address_street" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+											<field name="street2" placeholder="Street 2..." class="o_address_street" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+											<field name="city" placeholder="City" class="o_address_city" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+											<field name="zip" placeholder="ZIP" class="o_address_zip" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+											<field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+										</div>
+										<field name="user_ids" invisible="1"/>
+									</group>
+									<group>
+										<field name="x_convention_type" widget="radio" options="{'horizontal': true}" style="font-size: 9px;"/>
+										<field name="x_patient_cafat"/>
+									</group>
+									<group>
+										<field name="email" widget="email" attrs="{'required': [('user_ids','!=', [])]}"/>
+									</group>
+									<group>
+										<field name="x_taille" digits="(4, 0)"/>
+										<field name="x_poids" digits="(4, 0)"/>
+										<field name="x_IMC" digits="(4, 2)"/>
+									</group>
+									<group>
+										<field name="x_context"/>
+									</group>
+									<group>
+										<field name="x_groupe_sang"/>
+										<field name="x_medecin_traitant"/>
+									</group>
+									<group>
+										<field name="x_allergies"/>
+									</group>
+							</group>
+							<separator string="Antécédents"/>
+							<group name="antecedent">
+								<notebook colspan="2">
+									<!-- <page name='allergies' string="Allergies" autofocus="autofocus">
+										<group>
+											<field name="x_allergies"/>
+										</group>
+									</page> -->
+									<page string="Familiaux" name="familiaux">
+										<group>
+											<field name="x_familiaux"/>
+										</group>
+									</page>
+									<page name='medicaux' string="Médicaux">
+										<group>
+											<field name="x_medicaux"/>
+										</group>
+									</page>
+									<page name='chirurgicaux' string="Chirurgicaux">
+										<group>
+											<field name="x_chirurgicaux"/>
+										</group>
+									</page>
+									<page name='gyneco' string="Gynéco">
+										<group>
+											<field name="x_gyneco"/>
+										</group>
+									</page>
+									<page name='obstetrique' string="Obstétricaux">
+										<group>
+											<field name="x_obstetrique"/>
+										</group>
+										<field name="x_ant_obst_ids">
+											<tree string="Tree Ant Obs" editable="bottom">
+												<field name="x_obst_date"/>
+												<field name="x_obst_lieu"/>
+												<field name="x_obst_gross"/>
+												<field name="x_obst_acc"/>
+												<field name="x_obst_sexe"/>
+												<field name="x_obst_poids"/>
+												<field name="x_obst_allait"/>
+												<field name="x_obst_etat"/>
+											</tree>
+										</field>
+									</page>
+									<page name='addictions' string="Addictions">
+										<group>
+											<field name="x_addictions"/>
+										</group>
+									</page>
+									<page name='grossesse' string="Grossesse(s)">
+										<group>
+											<field name="x_partner_gross_ddr"/>
+										</group>
+										<field name="x_info_grossesse_ids">
+											<tree string="Tree Gross" editable="bottom">
+												<field name="x_gross_num"/>
+												<field name="x_gross_tp" string="TP"/>
+												<field name="x_gross_dg" string="DG"/>
+												<field name="x_gross_ddr" string="DDR"/>
+											</tree>
+										</field>
+									</page>
+									<page name='vaccin' string="Vaccins">
+											<table colspan="4" class="oe_form_group" style="background-color: #fffafa;">
+												<tr style="height:27px" class="oe_form_group_row">
+													<th style="width:16%%; text-align: center">Age approprié</th>
+													<th style="width:7%%; text-align: center">Naiss.</th>
+													<th style="width:7%%; text-align: center">2 mois</th>
+													<th style="width:7%%; text-align: center">4 mois</th>
+													<th style="width:7%%; text-align: center">11 mois</th>
+													<th style="width:7%%; text-align: center">12 mois</th>
+													<th style="width:7%%; text-align: center">16 mois</th>
+													<th style="width:7%%; text-align: center">6 ans</th>
+													<th style="width:7%%; text-align: center">11 ans</th>
+													<th style="width:7%%; text-align: center">14 ans</th>
+													<th style="width:7%%; text-align: center">25 ans</th>
+													<th style="width:7%%; text-align: center">45 ans</th>
+													<th style="width:7%%; text-align: center">+65 ans</th>
+												</tr>
+												<tr>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #ffeff9; vertical-align: middle; text-align: right;">BCG :</td>
+													<td style="text-align: center; background-color: #ffeff9; vertical-align: middle">
+														<field name="x_BCG_N" nolabel="1" style="vertical-align: middle"/>
+													</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #effff0; vertical-align: middle; text-align: right">DTP :</td>
+													<td>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_DTP_2m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_DTP_4m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_DTP_11m" nolabel="1"/>
+													</td>
+													<td>
+													</td>
+													<td>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_DTP_6a" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_DTP_1113a" nolabel="1"/>
+													</td>
+													<td>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_DTP_25" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_DTP_45" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle; font-size: 10px;">Tous les 10ans</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #effff0; vertical-align: middle; text-align: right">Coqueluche :</td>
+													<td>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_coq_2m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_coq_4m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_coq_11m" nolabel="1"/>
+													</td>
+													<td>
+													</td>
+													<td>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_coq_6a" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_coq_1113a" nolabel="1"/>
+													</td>
+													<td>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_coq_25" nolabel="1"/>
+													</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #effff0; vertical-align: middle; text-align: right">HIB :</td>
+													<td></td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_HIB_2m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_HIB_4m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #effff0; vertical-align: middle">
+														<field name="x_HIB_11m" nolabel="1"/>
+													</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #ffffe6; vertical-align: middle; text-align: right">Hépatite B :</td>
+													<td></td>
+													<td style="text-align: center; background-color: #ffffe6; vertical-align: middle">
+														<field name="x_HepB_2m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #ffffe6; vertical-align: middle">
+														<field name="x_HepB_4m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #ffffe6; vertical-align: middle">
+														<field name="x_HepB_11m" nolabel="1"/>
+													</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #ffe6f9; vertical-align: middle; text-align: right">Pneumocoque :</td>
+													<td></td>
+													<td style="text-align: center; background-color: #ffe6f9; vertical-align: middle">
+														<field name="x_pneumo_2m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #ffe6f9; vertical-align: middle">
+														<field name="x_pneumo_4m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #ffe6f9; vertical-align: middle">
+														<field name="x_pneumo_11m" nolabel="1"/>
+													</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #ffe6f9; vertical-align: middle; text-align: right">Méningicoque C :</td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td style="text-align: center; background-color: #ffe6f9; vertical-align: middle">
+														<field name="x_meningo_11m" nolabel="1"/>
+													</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #ffb3b3; vertical-align: middle; text-align: right">ROR :</td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td style="text-align: center; background-color: #ffb3b3; vertical-align: middle">
+														<field name="x_ROR_12m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #ffb3b3; vertical-align: middle">
+														<field name="x_ROR_1618m" nolabel="1"/>
+													</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #ffebcc; vertical-align: middle; text-align: right">HPV :</td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td style="text-align: center; background-color: #ffebcc; vertical-align: middle">
+														<field name="x_HPV_1113m" nolabel="1"/>
+													</td>
+													<td style="text-align: center; background-color: #ffebcc; vertical-align: middle">
+														<field name="x_HPV_14m" nolabel="1"/>
+													</td>
+												</tr>
+												<tr class="oe_form_group_row">
+													<td style="background-color: #eff2ff; vertical-align: middle; text-align: right; margin-right: 2">Grippe :</td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td></td>
+													<td style="text-align: center; background-color: #eff2ff; vertical-align: middle; font-size: 10px;">Tous les 10ans</td>
+												</tr>
+											</table>
+										<!-- <group col="15"eff2ff>
+											<label string="Age approprié"/>
+											<span></span>
+											<label string="Nais"/>
+											<label string="2 m"/>
+											<label string="4 m"/>
+											<label string="11m"/>
+											<label string="12m"/>
+											<label string="17m"/>
+											<label string="6 a"/>
+											<label string="12a"/>
+											<label string="14a"/>
+											<label string="25a"/>
+											<label string="45a"/>
+											<label string="+65"/>
+										</group>
+											
+										<group col="15">
+											<label string="BCG"/>
+											<span></span>
+											<field name="x_BCG_N" nolabel="1" colspan="13"/>
+										</group>
+											
+										<group col="15">
+											<label string="DTP"/>
+											<span></span>
+											<span></span>
+											<field name="x_DTP_2m" nolabel="1"/>
+											<field name="x_DTP_4m" nolabel="1"/>
+											<field name="x_DTP_11m" nolabel="1"/>
+											<span></span>
+											<span></span>
+											<span></span>
+											<field name="x_DTP_6a" nolabel="1"/>
+											<field name="x_DTP_1113a" nolabel="1"/>
+											<span></span>
+											<field name="x_DTP_25" nolabel="1"/>
+											<field name="x_DTP_45" nolabel="1"/>
+											<span></span>
+										</group>
+											
+										<group col="15">
+											<label string="Coqueluche"/>
+											<span></span>
+											<span></span>
+											<field name="x_coq_2m" nolabel="1"/>
+											<field name="x_coq_4m" nolabel="1"/>
+											<field name="x_coq_11m" nolabel="1" colspan="3"/>
+											<field name="x_coq_6a" nolabel="1"/>
+											<field name="x_coq_1113a" nolabel="1" colspan="2"/>
+											<field name="x_coq_25" nolabel="1" colspan="4"/>
+										</group>
+
+										<group col="15">
+											<label string="HIB"/>
+											<span></span>
+											<field name="x_HIB_2m" nolabel="1"/>
+											<field name="x_HIB_4m" nolabel="1"/>
+											<field name="x_HIB_11m" nolabel="1" colspan="11"/>
+										</group>
+
+										<group col="15">
+											<label string="Hépatite B"/>
+											<span></span>
+											<field name="x_HepB_2m" nolabel="1"/>
+											<field name="x_HepB_4m" nolabel="1"/>
+											<field name="x_HepB_11m" nolabel="1" colspan="11"/>
+										</group> -->
+									</page>
+								</notebook>
+							</group>
+						</sheet>
+							<div class="oe_chatter">
+								<!-- <field name="message_follower_ids" widget="mail_followers"/> -->
+								<field name="message_ids" widget="mail_thread" options='{"thread_level": 1}'/>
+							</div>
+					</form>
+			</field>
+		</record>
+
+
+		<!-- Kanban View -->
+		<record model="ir.ui.view" id="res_partner_kanban_view">
+			<field name="name">res.partner.kanban</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="base.res_partner_kanban_view"/>
+			<field name="priority" eval="10"/>
+			<field name="arch" type="xml">
+				<field name="mobile" position="after">
+					<field name="meeting_count"/>
+					<field name="x_patient_sexe"/>
+					<field name="x_compte_type"/>
+					<field name="age"/>
+				</field>
+				<xpath expr="//div[@name='o_kanban_image']" position="attributes">
+					<attribute name="invisible">True</attribute>
+				</xpath>
+				<xpath expr="//div[@name='oe_kanban_details']" position="attributes">
+					<attribute name="invisible">True</attribute>
+				</xpath>
+				<xpath expr="//div[@name='patient_kanban_view_replace']" position="inside">
+					<div class="o_kanban_image" name="my_o_kanban_image">
+							<t t-if="record.is_company.raw_value === true">
+								<img t-att-src='_s + "/base/static/src/img/company_image.png"'/>
+							</t>
+							<t t-if="record.is_company.raw_value === false">
+								<t t-if="record.x_compte_type.raw_value === 'pro'">
+									<t t-if="record.x_patient_sexe.raw_value === 'feminin'">
+										<img t-att-src='_s + "/AlloDoc/static/src/img/avatar_medecin_femme.png"'/>
+									</t>
+									<t t-if="record.x_patient_sexe.raw_value === 'masculin'">
+										<img t-att-src='_s + "/AlloDoc/static/src/img/avatar_medecin_homme.png"'/>
+									</t>
+								</t>
+
+								<t t-if="record.x_compte_type.raw_value === 'patient'">
+									<t t-if="record.age.raw_value &gt;= 18">
+										<t t-if="record.x_patient_sexe.raw_value === 'feminin'">
+											<img t-att-src='_s + "/AlloDoc/static/src/img/avatar_femme.png"'/>
+										</t>
+
+										<t t-if="record.x_patient_sexe.raw_value === 'masculin'">
+											<img t-att-src='_s + "/AlloDoc/static/src/img/avatar_homme.png"'/>
+										</t>
+									</t>
+									<t t-if="record.age.raw_value &gt;= 3 and record.age.raw_value &lt; 18">
+										<t t-if="record.x_patient_sexe.raw_value === 'feminin'">
+											<img t-att-src='_s + "/AlloDoc/static/src/img/avatar_fille.png"'/>
+										</t>
+
+										<t t-if="record.x_patient_sexe.raw_value === 'masculin'">
+											<img t-att-src='_s + "/AlloDoc/static/src/img/avatar_garcon.png"'/>
+										</t>
+									</t>
+									<t t-if="record.age.raw_value &lt; 3">
+										<t t-if="record.x_patient_sexe.raw_value === 'feminin'">
+											<img t-att-src='_s + "/AlloDoc/static/src/img/avatar_bebe_f.png"'/>
+										</t>
+
+										<t t-if="record.x_patient_sexe.raw_value === 'masculin'">
+											<img t-att-src='_s + "/AlloDoc/static/src/img/avatar_bebe_g.png"'/>
+										</t>
+									</t>
+								</t>
+							</t>
+					</div>
+					<div class="oe_kanban_details" name="my_oe_kanban_details">
+						<strong class="oe_partner_heading"><field name="name"/>  <field name="x_patient_prenom"/></strong>
+						<ul>
+							<li t-if="record.parent_id.raw_value"><field name="parent_id"/></li>
+							<li t-if="record.phone.raw_value"><field name="phone"/></li>
+							<li t-if="record.email.raw_value" class="o_text_overflow"><field name="email"/></li>
+						</ul>
+						<div class="oe_kanban_partner_links"/>
+					</div>
+				</xpath>
+			</field>
+		</record>
+
+
+		<!-- Vue Patient -->
+
+  		<record id="custom_res_partner_action" model="ir.actions.act_window">
+			<field name="name">Patients</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">res.partner</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">kanban,tree,form</field>
+			<field name="domain">[('x_compte_type','=','patient')]</field>
+			<!-- <field name="context">{'group_by': 'x_patient_sexe'}</field> -->
+			<field name="help" type="html">
+			<p class="oe_view_nocontent_create">
+			  bla bla bla
+			</p>
+			</field>
+		</record>
+
+		<record model="ir.actions.act_window.view" id="custom_res_partner_kanban_view_action">
+			<field eval="0" name="sequence"/>
+			<field name="view_mode">kanban</field>
+			<field name="view_id" ref="custom_res_partner_kanban_view"/>
+			<field name="act_window_id" ref="custom_res_partner_action"/>
+		</record>
+
+		<record model="ir.actions.act_window.view" id="custom_res_partner_tree_view_action">
+			<field eval="1" name="sequence"/>
+			<field name="view_mode">tree</field>
+			<field name="view_id" ref="custom_res_partner_tree_view"/>
+			<field name="act_window_id" ref="custom_res_partner_action"/>
+		</record>
+
+		<record model="ir.actions.act_window.view" id="custom_res_partner_form_view_action">
+			<field eval="2" name="sequence"/>
+			<field name="view_mode">form</field>
+			<field name="view_id" ref="custom_res_partner_form_view"/>
+			<field name="act_window_id" ref="custom_res_partner_action"/>
+		</record>
+
+		<!-- Vue Cabinet -->
+
+		<record id="pro_res_partner_action" model="ir.actions.act_window">
+			<field name="name">Cabinet</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">res.partner</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">kanban,tree,form</field>
+			<field name="domain">[('x_compte_type','=','pro')]</field>
+			<field name="help" type="html">
+			<p class="oe_view_nocontent_create">
+			  bla bla bla
+			</p>
+			</field>
+		</record>
+
+		<record model="ir.actions.act_window.view" id="custom_res_partner_kanban_view_action">
+			<field eval="0" name="sequence"/>
+			<field name="view_mode">kanban</field>
+			<field name="view_id" ref="custom_res_partner_kanban_view"/>
+			<field name="act_window_id" ref="pro_res_partner_action"/>
+		</record>
+
+		<record model="ir.actions.act_window.view" id="custom_res_partner_tree_view_action">
+			<field eval="1" name="sequence"/>
+			<field name="view_mode">tree</field>
+			<field name="view_id" ref="custom_res_partner_tree_view"/>
+			<field name="act_window_id" ref="pro_res_partner_action"/>
+		</record>
+
+		<record model="ir.actions.act_window.view" id="custom_res_partner_form_view_action">
+			<field eval="2" name="sequence"/>
+			<field name="view_mode">form</field>
+			<field name="view_id" ref="custom_res_partner_form_view"/>
+			<field name="act_window_id" ref="pro_res_partner_action"/>
+		</record>
+
+
+
+
+	<menuitem id="custom_res_partner" name="Patients" action="custom_res_partner_action"/>
+	<menuitem id="pro_res_partner" name="Cabinet" action="pro_res_partner_action"/>
+
+	</data>
+</openerp>

@@ -1,0 +1,2 @@
+import custom_res_partner
+import custom_calendar

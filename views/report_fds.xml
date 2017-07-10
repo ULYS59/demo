@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="AlloDoc.report_fds_document">
+    <t t-call="report.external_layout">
+        <div class="page">
+            <div class="row">
+                <span t-field="o.x_patient_cafat"/>
+                <span t-field="o.name"/>
+                <span t-field="o.x_patient_prenom"/>dob
+                <span t-field="o.dob"/>
+
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr t-foreach="o.x_meeting_ids" t-as="l">
+                            <td><span t-field="l.start_datetime" t-field-options='{"format": "dd/MM/yyyy"}'/></td>
+                            <td class="text-right">
+                                <span t-field="l.x_event_codeActe"/>
+                            </td>
+                            <td class="text-right">
+                                <span t-field="l.x_event_priceActe"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+   </t>
+</template>
+
+<template id="report_fds">
+    <t t-call="report.html_container">
+        <t t-foreach="docs" t-as="o">
+            <t t-call="AlloDoc.report_fds_document" t-lang="o.lang"/>
+        </t>
+    </t>
+</template>
+</odoo>
