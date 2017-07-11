@@ -24,12 +24,12 @@ import pytz
 import threading
 import urlparse
 
-GRP_SANG_SELECTION = [
-    ('O+', 'O+'), ('O-', 'O-'), ('A+', 'A+'), ('A-', 'A-'), ('B+', 'B+'), ('B-', 'B-'), ('AB+', 'AB+'), ('AB-', 'AB-')
-]
-GROSS_NUM_SELECTION = [
-    ('1', '1ère gross.'), ('2', '2ème gross.'), ('3', '3ème gross.'), ('4', '4ème gross.'), ('5', '5ème gross.'), ('6', '6ème gross.'), ('7', '7ème gross.'), ('8', '8ème gross.'), ('9', '9ème gross.'), ('10', '10ème gross.')
-]
+##########           MEDICAL INFO ???
+# GRP_SANG_SELECTION = [
+#     ('O+', 'O+'), ('O-', 'O-'), ('A+', 'A+'), ('A-', 'A-'), ('B+', 'B+'), ('B-', 'B-'), ('AB+', 'AB+'), ('AB-', 'AB-')
+# ]
+##########
+
 SEXE_SELECTION = [
     ('masculin', 'Masc.'), ('feminin', 'Fem.')
 ]
@@ -38,123 +38,6 @@ CONVENTION_SELECTION = [
     ('cafat', 'CAFAT'), ('am_sud', 'AM Sud'), ('am_nord', 'AM Nord'), ('am_iles', 'AM Iles'), ('autre','Autre')
 ]
 
-DEFAULT_x_questionnaire_rp = """Sport : 
-
-Algies dorsales : 
-
-Sciatiques : 
-
-ATCD rééduc. : 
-
-Incontinence urinaire : 
-
-Algies pelviennes : 
-
-Pesanteur : 
-
-Incontinence anale : 
-
-Rapports sexuels : 
-
-Contraception : 
-
-Perte de poids : 
-
-Retour de couche : 
-"""
-
-DEFAULT_x_obstetrique = """Gestité : 
-
-Parité : 
-
-FCS : 
-
-IVG : 
-"""
-
-DEFAULT_x_addictions = """Tabac : 
-
-Alcool : 
-
-Drogues : 
-"""
-
-DEFAULT_x_exam_rp = """TV : 
-
-Vulve : 
-
-Cicatrice : 
-
-Bassin : 
-
-Abdominaux : 
-
-Tonus : 
-"""
-
-DEFAULT_x_medicaux = """Hep B : 
-
-Hep C : 
-
-TPHA / VDRL : 
-
-HIV : 
-
-Toxoplasmose : 
-
-Raï : 
-
-Rubéole : 
-
-Test OMS : 
-
-HT21 : 
-"""
-
-
-
-class antecedent_obst(osv.osv):
-    _name = "antecedent.obst"
-    _description = 'Antécédents obstrétriques'
-    _columns = {
-        'id': fields.integer('ID'),
-        'partner_id': fields.many2one('res.partner', 'Partner ID', ondelete='cascade'),
-        'x_obst_date': fields.date('Date'),
-        'x_obst_lieu': fields.char('Lieu', size=16),
-        'x_obst_gross': fields.char('Gross.', size=16),
-        'x_obst_acc': fields.char('Acc.', size=16),
-        'x_obst_sexe': fields.char('Sexe', size=8),
-        'x_obst_poids': fields.char('Poids', size=8),
-        'x_obst_allait': fields.char('Allait.', size=8),
-        'x_obst_etat': fields.char('Etat', size=16),
-    }
-antecedent_obst()
-
-
-class info_grossesse(osv.osv):
-    _name = "info.grossesse"
-    _description = 'Grossesse(s)'
-
-    @api.one
-    @api.depends('x_gross_tp')
-    def _get_dg_ddr(self):
-        x_tp = self.x_gross_tp
-        tp = datetime.strptime(x_tp, "%Y-%m-%d")#"%m/%d/%y")
-        self.x_gross_dg = tp - timedelta(days=273)
-        self.x_gross_ddr = tp - timedelta(days=287)
-
-    _columns = {
-        'id': fields.integer('ID'),
-        'partner_id': fields.many2one('res.partner', 'Partner ID', ondelete='cascade'),
-        'x_gross_num': fields.selection(GROSS_NUM_SELECTION, string='Gross.'),
-        'x_gross_tp': fields.date(string='TP', default=datetime.now()),
-        'x_gross_dg': fields.date(string='DG', readonly=True, compute=_get_dg_ddr),
-        'x_gross_ddr': fields.date(string='DDR', readonly=True, compute=_get_dg_ddr),
-    }
-
-    _default = {
-    }
-info_grossesse()
 
 class custom_res_partner(osv.osv):
     _name = "res.partner"
@@ -178,18 +61,15 @@ class custom_res_partner(osv.osv):
             pass
         return res
 
-    # @api.multi
+    ##########           MEDICAL INFO ???
+    # @api.one
+    # @api.depends('x_poids','x_taille') 
     # def _compute_IMC(self):
-    #     for record in self: 
-    #         # record.x_IMC= ((record.x_poids) / (record.x_taille / 100)*(record.x_taille / 100))
-    #         record.x_IMC= '1'
-    @api.one
-    @api.depends('x_poids','x_taille') 
-    def _compute_IMC(self):
-        if self.x_taille == 0:
-            self.x_IMC = '0'
-        else:
-            self.x_IMC = self.x_poids / ((self.x_taille / 100) * (self.x_taille / 100))
+    #     if self.x_taille == 0:
+    #         self.x_IMC = '0'
+    #     else:
+    #         self.x_IMC = self.x_poids / ((self.x_taille / 100) * (self.x_taille / 100))
+    ##########
   
     @api.one
     @api.depends('name', 'x_patient_prenom')
@@ -215,68 +95,13 @@ class custom_res_partner(osv.osv):
         'x_src_avatar' : fields.binary("x_src_avatar", attachment=True,
             help="This field holds the image used as avatar for this contact, limited to 1024x1024px"),
         'x_medecin_traitant': fields.char('Médecin traitant', size=32),
-        'x_groupe_sang': fields.selection(GRP_SANG_SELECTION, string='Groupe sang.'),
-        'x_taille': fields.float('Taille (cm)',digits=(4,6)),
-        'x_poids': fields.float('Poids (kg)',digits=(4,6)),
-        'x_IMC': fields.float(string='IMC', compute='_compute_IMC',digits=(4,6)),
-        'x_context': fields.text('Contexte social'),
-        'x_familiaux': fields.text('Antécédents familiaux'),
-        'x_info_grossesse_ids': fields.one2many('info.grossesse', 'partner_id', 'Grossesse(s)', auto_join=True),
-        'x_ant_obst_ids': fields.one2many('antecedent.obst', 'partner_id', 'Antécédents obtsétricaux', auto_join=True),
-        'x_questionnaire_rp': fields.text('Questionnaire RP', default=DEFAULT_x_questionnaire_rp),
-        'x_chirurgicaux': fields.text('Antécédents chirurgicaux'),
-        'x_gyneco': fields.text('Antécédents gyneco'),
-        'x_obstetrique': fields.text('Antécédents obstétricaux', default=DEFAULT_x_obstetrique),
-        'x_allergies': fields.text('Allergies'),
-        'x_addictions': fields.text('Addictions', default=DEFAULT_x_addictions),
-        'x_exam_rp': fields.text('Examen RP', default=DEFAULT_x_exam_rp),
-        'x_atcd_marquants': fields.text('Antécédents marquants', default="Antécédents marquants :"),
-        'x_contexte_epp': fields.text('Contexte social & familial', default="Contexte social & familial :"),
-        'x_projet_naissance': fields.text('Projet de naissance', default="Projet de naissance :"),
-        'x_ressentis': fields.text('Ressentis', default="Ressentis :"),
-        'x_medicaux': fields.text('Antécédents médicaux', default=DEFAULT_x_medicaux),
-        'x_partner_gross_ddr': fields.date('DDR gross. actuelle'),
-        # Vaccins BCG
-        'x_BCG_N': fields.boolean('x_BCG_N'),
-        # Vaccins DTP
-        'x_DTP_2m': fields.boolean('x_DTP_2m'),
-        'x_DTP_4m': fields.boolean('x_DTP_4m'),
-        'x_DTP_11m': fields.boolean('x_DTP_11m'),
-        'x_DTP_6a': fields.boolean('x_DTP_6a'),
-        'x_DTP_1113a': fields.boolean('x_DTP_1113a'),
-        'x_DTP_25': fields.boolean('x_DTP_25'),
-        'x_DTP_45': fields.boolean('x_DTP_45'),
-        # Vaccins Coqueluche
-        'x_coq_2m': fields.boolean('x_coq_2m'),
-        'x_coq_4m': fields.boolean('x_coq_4m'),
-        'x_coq_11m': fields.boolean('x_coq_11m'),
-        'x_coq_6a': fields.boolean('x_coq_6a'),
-        'x_coq_1113a': fields.boolean('x_coq_1113a'),
-        'x_coq_25': fields.boolean('x_coq_25'),
-        'x_coq_45': fields.boolean('x_coq_45'),
-        # Vaccins HIB
-        'x_HIB_2m': fields.boolean('x_HIB_2m'),
-        'x_HIB_4m': fields.boolean('x_HIB_4m'),
-        'x_HIB_11m': fields.boolean('x_HIB_11m'),
-        # Vaccins HepB
-        'x_HepB_2m': fields.boolean('x_HepB_2m'),
-        'x_HepB_4m': fields.boolean('x_HepB_4m'),
-        'x_HepB_11m': fields.boolean('x_HepB_11m'),
-        # Vaccins Pneumocoque
-        'x_pneumo_2m': fields.boolean('x_pneumo_2m'),
-        'x_pneumo_4m': fields.boolean('x_pneumo_4m'),
-        'x_pneumo_11m': fields.boolean('x_pneumo_11m'),
-        # Vaccins Meningocoque C
-        'x_meningo_11m': fields.boolean('x_meningo_11m'),
-        # Vaccins ROR
-        'x_ROR_12m': fields.boolean('x_ROR_12m'),
-        'x_ROR_1618m': fields.boolean('x_ROR_1618m'),
-        # Vaccins HPV
-        'x_HPV_1113m': fields.boolean('x_HPV_1113m'),
-        'x_HPV_14m': fields.boolean('x_HPV_14m'),
-        # Vaccins Grippe
-
-
+        ##########           MEDICAL INFO ???
+        # 'x_groupe_sang': fields.selection(GRP_SANG_SELECTION, string='Groupe sang.'),
+        # 'x_taille': fields.float('Taille (cm)',digits=(4,6)),
+        # 'x_poids': fields.float('Poids (kg)',digits=(4,6)),
+        # 'x_IMC': fields.float(string='IMC', compute='_compute_IMC',digits=(4,6)),
+        ##########
+        
         # Reprise de CRM 
         'x_opportunity_ids': fields.one2many('crm.lead', 'partner_id',\
             'Opportunities', domain=[('type', '=', 'opportunity')]),
@@ -300,9 +125,10 @@ class custom_res_partner(osv.osv):
         'x_compte_type': 'pro',
         'x_medecin_traitant': ' ',
         'x_groupe_sang': '',
-        'x_taille': '0,1',
-        'x_poids': '0,1',
-        'x_context': '',
+        ##########           MEDICAL INFO ???
+        # 'x_taille': '0,1',
+        # 'x_poids': '0,1',
+        ##########
     }
 
     _sql_constraints = [
@@ -332,6 +158,7 @@ class custom_res_partner(osv.osv):
 
 
     #############            Donne l'image a utiliser comme avatar            #############
+    #############    MODIFY ??? !!!
     @api.model
     def _get_default_avatar(self, vals):
         if getattr(threading.currentThread(), 'testing', False) or self.env.context.get('install_mode'):
@@ -403,14 +230,15 @@ class custom_res_partner(osv.osv):
 
 
 
+    # Need to write these lines twice to get result I excepted...
+    # if not, at save, avatar is not updated with value filled in form (_get_default_avatar),
+    # but with values previously stored in DB
     @api.multi
     def write(self, vals):
 
         vals['x_src_avatar'] = self._get_default_avatar(vals)
         result = super(custom_res_partner, self).write(vals)
         vals['x_src_avatar'] = self._get_default_avatar(vals)
-        vals['x_ant_obst_ids'] = self.x_ant_obst_ids
-        vals['x_info_grossesse_ids'] = self.x_info_grossesse_ids
         result = super(custom_res_partner, self).write(vals)
         
         return result
